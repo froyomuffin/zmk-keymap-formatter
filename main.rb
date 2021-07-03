@@ -90,29 +90,126 @@ class Key
 end
 
 class LayoutBuilder
+  UL_CORNER = '┌'
+  LL_CORNER = '└'
+  UR_CORNER = '┐'
+  LR_CORNER = '┘'
+  H_LINE = '─'
+  V_LINE = '│'
+  B_DOWN = '┬'
+  B_UP = '┴'
+  B_LEFT = '┤'
+  B_RIGHT = '├'
+  B_UP_DOWN = '┼'
+
   def initialize(keyboard)
     @keyboard = keyboard
 
     @densest_key = @keyboard.keys.max { |key_a, key_b| key_a.density <=> key_b.density }
     @unit_length = @densest_key.density
+
+    @target_line_size = @keyboard.key_lines.map { |key_line| determine_base_line_size(key_line) }.max
   end
 
   def build
-    target_line_size = @keyboard.key_lines.map { |key_line| determine_base_line_size(key_line) }.max
+    command_lines = build_command_lines
+    decorator_lines = build_decorator_lines(command_lines)
 
-    @keyboard.key_lines.map do |key_line|
-      "|| " + adjust_and_build_line(target_line_size, key_line) + " ||"
-    end
+    present_decorators(decorator_lines)
+      .zip(present_commands(command_lines))
+      .flatten
+      .compact
   end
 
   private
+
+  def present_decorators(lines)
+    lines.map { |line| "//" + line }
+  end
+
+  def present_commands(lines)
+    lines.map { |line| "  " + line.gsub("|", " ") }
+  end
+
+  def build_command_lines
+    @keyboard.key_lines.map do |key_line|
+     adjust_and_build_line(key_line)
+    end
+
+  end
+
+  def build_decorator_lines(command_lines)
+    separator_indices_lines = command_lines.map do |command_line|
+      (0..command_line.length - 1).find_all { |index| command_line[index] == '|' }
+    end
+
+    separator_indices_lines = [[]] + separator_indices_lines + [[]]
+
+    lines = separator_indices_lines.each_cons(2).to_a.map do |first_line, second_line|
+      if first_line.empty?
+        build_top_decorator_line(second_line)
+      elsif second_line.empty?
+        build_bottom_decorator_line(first_line)
+      else
+        build_middle_decorator_line(first_line, second_line)
+      end
+    end
+
+    lines.map { |line| line }
+  end
+
+  def build_top_decorator_line(indices_line)
+    @target_line_size.times.map do |index|
+      if index == 0
+        UL_CORNER
+      elsif index == @target_line_size - 1
+        UR_CORNER
+      elsif indices_line.include?(index)
+        B_DOWN
+      else
+        H_LINE
+      end
+    end.join
+  end
+
+  def build_bottom_decorator_line(indices_line)
+    @target_line_size.times.map do |index|
+      if index == 0
+        LL_CORNER
+      elsif index == @target_line_size - 1
+        LR_CORNER
+      elsif indices_line.include?(index)
+        B_UP
+      else
+        H_LINE
+      end
+    end.join
+  end
+
+  def build_middle_decorator_line(first_line, second_line)
+    @target_line_size.times.map do |index|
+      if index == 0
+        B_RIGHT
+      elsif index == @target_line_size - 1
+        B_LEFT
+      elsif first_line.include?(index) && second_line.include?(index)
+        B_UP_DOWN
+      elsif first_line.include?(index)
+        B_UP
+      elsif second_line.include?(index)
+        B_DOWN
+      else
+        H_LINE
+      end
+    end.join
+  end
 
   def determine_base_line_size(key_line)
     build_line(key_line).length
   end
 
-  def adjust_and_build_line(target_line_size, key_line)
-    difference = target_line_size - determine_base_line_size(key_line)
+  def adjust_and_build_line(key_line)
+    difference = @target_line_size - determine_base_line_size(key_line)
 
     if difference > 0
       key_indices_by_key_length =
