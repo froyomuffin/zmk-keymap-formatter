@@ -2,22 +2,16 @@ require 'rubygems'
 require 'bundler/setup'
 Dir["app/**/*.rb"].each { |file| require_relative file }
 
-FILE = "samples/nice60.keymap"
+file_name = ARGV[0]
 
-formatter = KeymapFormatter.new(keymap_file: FILE)
+if file_name.nil? || file_name.empty?
+  puts "Enter a file name"
+else
+  puts "Formatting file: #{file_name}"
 
-result = formatter.format
+  formatted = KeymapFormatter.new(keymap_file: file_name).format
 
-result.each { |e| puts e }
-
-exit
-
-SAMPLE_LAYER = "samples/layer.keymap"
-
-key_lines = File.readlines(SAMPLE_LAYER)
-kb = Keyboard.new(
-  layout: Keyboard::Layouts::SIXTY_PERCENT_ANSI,
-  raw_rows: key_lines,
-)
-
-kb.render.each { |e| puts e }
+  File.write(file_name, formatted.join)
+  
+  puts "Done"
+end

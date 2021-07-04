@@ -15,9 +15,9 @@ class KeymapFormatter
         layout: Keyboard::Layouts::SIXTY_PERCENT_ANSI,
         raw_rows: raw_rows
       )
-      formatted_rows = keyboard.render
+      formatted_rows = keyboard.render.map { |row| row + "\n" }
 
-      @keymap_lines[start, formatted_rows.length] = formatted_rows
+      @keymap_lines[start, raw_rows.length] = formatted_rows
     end
 
     @keymap_lines
