@@ -18,21 +18,23 @@ class Keyboard
     decorator_lines = DecoratorLines.for(@rows)
     command_lines = CommandLines.for(@rows)
 
-    decorator_lines.zip(command_lines).compact
+    decorator_lines.zip(command_lines).flatten.compact
   end
 
   private
 
   def parse_rows(raw_rows)
-    raw_rows.map do |row|
-      row
-        .split('&')
-        .map(&:strip)
-        .reject(&:empty?)
-        .map do |key|
-          key.gsub(/\s+/, " ")
-        end
-    end
+    raw_rows
+      .select { |row| row.include?('&') }
+      .map do |row|
+        row
+          .split('&')
+          .map(&:strip)
+          .reject(&:empty?)
+          .map do |key|
+            key.gsub(/\s+/, " ")
+          end.compact
+      end
   end
 
   def normalize_row_character_widths
