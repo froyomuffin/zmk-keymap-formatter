@@ -1,6 +1,6 @@
-require 'rubygems'
-require 'bundler/setup'
-Dir["app/**/*.rb"].each { |file| require_relative file }
+#!/usr/bin/env ruby
+
+require "zmk/keymap_formatter"
 
 file_name = ARGV[0]
 
@@ -9,7 +9,7 @@ if file_name.nil? || file_name.empty?
 else
   puts "Formatting file: #{file_name}"
 
-  formatted = KeymapFormatter.new(keymap_file: file_name).format
+  formatted = Zmk::KeymapFormatter::Formatter.new(keymap_file: file_name).format
 
   File.write(file_name, formatted.join)
   
