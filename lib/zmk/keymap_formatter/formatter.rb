@@ -3,8 +3,9 @@
 module Zmk
   module KeymapFormatter
     class Formatter
-      def initialize(keymap_file:)
+      def initialize(keymap_file:, layout:)
         @keymap_lines = File.readlines(keymap_file)
+        @layout = layout
         @binding_indices = find_binding_indices
       end
 
@@ -13,7 +14,7 @@ module Zmk
           raw_rows = @keymap_lines[start..stop]
 
           keyboard = Keyboard.new(
-            layout: Layouts::SIXTY_PERCENT_ANSI,
+            layout: @layout,
             raw_rows: raw_rows
           )
           formatted_rows = keyboard.render.map { |row| row + "\n" }

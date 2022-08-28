@@ -3,15 +3,20 @@
 require "zmk/keymap_formatter"
 
 file_name = ARGV[0]
+layout_name = ARGV[1]
 
 if file_name.nil? || file_name.empty?
   puts "Enter a file name"
+elsif layout_name.nil? || layout_name.empty?
+  puts "Enter a layout name"
 else
   puts "Formatting file: #{file_name}"
 
-  formatted = Zmk::KeymapFormatter::Formatter.new(keymap_file: file_name).format
+  layout = Zmk::KeymapFormatter::Layouts::SIXTY_FIVE_PERCENT_ANSI #TODO: Parse from input
+
+  formatted = Zmk::KeymapFormatter::Formatter.new(keymap_file: file_name, layout: layout).format
 
   File.write(file_name, formatted.join)
-  
+
   puts "Done"
 end
